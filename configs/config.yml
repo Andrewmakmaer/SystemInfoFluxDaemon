@@ -1,0 +1,7 @@
+port: 8765
+modes:
+  - la
+  - cpu
+  - disk
+  - netalkers
+  - netstats
