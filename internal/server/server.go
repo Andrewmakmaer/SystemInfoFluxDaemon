@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"os"
 	"time"
@@ -85,7 +86,10 @@ func (s *Server) stream(streamType string, streamDelay, streamRange int, stream 
 		}
 		err := stream.Send(msg)
 		if err != nil {
-			s.logg.Log("message", "not send message", "status", "send error")
+			e := s.logg.Log("message", "not send message", "status", "send error")
+			if e != nil {
+				fmt.Println("Message not send")
+			}
 			continue
 		}
 		time.Sleep(time.Duration(streamDelay) * time.Second)
