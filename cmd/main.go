@@ -78,5 +78,8 @@ func main() {
 		task.Do(ctx)
 	}
 
-	srv.Start(ctx)
+	err := srv.Start(ctx)
+	if err != nil {
+		panic(err)
+	}
 }

@@ -25,6 +25,7 @@ type Server struct {
 	pb.UnimplementedDaemonServer
 	listener net.Listener
 	serv     *grpc.Server
+	logg     log.Logger
 	app      app
 }
 
@@ -33,13 +34,13 @@ func NewServer(app app, port string) Server {
 
 	lsn, err := net.Listen("tcp", ":"+port)
 	if err != nil {
-		logger.Log("message", err.Error())
+		panic(err)
 	}
 
 	serv := grpc.NewServer(
 		grpc.ChainStreamInterceptor(grpc_middleware.ChainStreamServer(kit.StreamServerInterceptor(logger))),
 	)
-	newServer := &Server{listener: lsn, serv: serv, app: app}
+	newServer := &Server{listener: lsn, serv: serv, app: app, logg: logger}
 	return *newServer
 }
 
@@ -82,7 +83,11 @@ func (s *Server) stream(streamType string, streamDelay, streamRange int, stream 
 		case "disk":
 			msg = s.disk(streamRange)
 		}
-		stream.Send(msg)
+		err := stream.Send(msg)
+		if err != nil {
+			s.logg.Log("message", "not send message", "status", "send error")
+			continue
+		}
 		time.Sleep(time.Duration(streamDelay) * time.Second)
 	}
 }
