@@ -1,4 +1,5 @@
 port: 8765
+log_level: "DEBUG"
 modes:
   - la
   - cpu

@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"flag"
-	"log"
+	"log/slog"
 	"os/signal"
 	"syscall"
 	"time"
@@ -46,9 +46,14 @@ func main() {
 				loadAvgList.AddRecord(loadaverage.GetInfo())
 			}))
 		case "disk":
-			doingList = append(doingList, scheduler.NewSchedule(1*time.Second, func() {
-				diskInfoList.AddRecord(diskinfo.GetInfo())
-			}))
+			err := diskinfo.CheckRequirements()
+			if err != nil {
+				slog.Error(err.Error())
+			} else {
+				doingList = append(doingList, scheduler.NewSchedule(1*time.Second, func() {
+					diskInfoList.AddRecord(diskinfo.GetInfo())
+				}))
+			}
 		}
 	}
 
@@ -70,7 +75,7 @@ func main() {
 		defer cancel()
 
 		if err := srv.Stop(ctx); err != nil {
-			log.Fatal("failed to stop grps server: " + err.Error())
+			slog.Error("failed to stop grps server", "err", err.Error())
 		}
 	}()
 
@@ -78,6 +83,7 @@ func main() {
 		task.Do(ctx)
 	}
 
+	slog.Info("start grpc server")
 	err := srv.Start(ctx)
 	if err != nil {
 		panic(err)

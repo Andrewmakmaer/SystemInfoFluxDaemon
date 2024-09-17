@@ -87,6 +87,7 @@ func (s *Server) stream(streamType string, streamDelay, streamRange int, stream 
 		err := stream.Send(msg)
 		if err != nil {
 			e := s.logg.Log("message", "not send message", "status", "send error")
+			stop = true
 			if e != nil {
 				fmt.Println("Message not send")
 			}
