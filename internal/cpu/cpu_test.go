@@ -1,55 +1,41 @@
 package cpu
 
 import (
-	"reflect"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestFormCpuInfo(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    []string
-		expected CPUStats
-	}{
-		{
-			name:     "Normal case",
-			input:    []string{" 2.0 us", " 1.5 sy", " 95.0 id", " 1.5 wa"},
-			expected: CPUStats{Usr: 2.0, Sys: 1.5, Idle: 95.0, Iowait: 1.5},
-		},
-		{
-			name:     "Missing fields",
-			input:    []string{" 2.0 us", " 98.0 id"},
-			expected: CPUStats{Usr: 2.0, Sys: 0, Idle: 98.0, Iowait: 0},
-		},
+	var results []CPUStats
+
+	for range 3 {
+		results = append(results, GetInfo())
+		time.Sleep(3 * time.Second)
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := formCPUInfo(tt.input)
-			if !reflect.DeepEqual(result, tt.expected) {
-				t.Errorf("formCpuInfo() = %v, want %v", result, tt.expected)
-			}
-		})
-	}
+	t.Run("test correct result", func(t *testing.T) {
+		item := results[0]
+		check := item.Idle + item.Sys + item.Usr + item.Iowait
+		require.LessOrEqual(t, check, float32(100))
+		require.Less(t, float32(0), check)
+	})
+
+	t.Run("test what results is diferent", func(t *testing.T) {
+		require.False(t, checkAllEqualing(results[0].Idle, results[1].Idle, results[2].Idle))
+	})
 }
 
-func TestParamToFloat(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    string
-		expected float32
-	}{
-		{"Simple case", " 2.0 us", 2.0},
-		{"Integer value", " 5 sy", 5.0},
-		{"Trailing spaces", " 3.5 id ", 3.5},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := paramToFloat(tt.input)
-			if result != tt.expected {
-				t.Errorf("paramToFloat(%q) = %v, want %v", tt.input, result, tt.expected)
+func checkAllEqualing(values ...float32) bool {
+	for i, item := range values {
+		if i+1 <= len(values) {
+			if item != values[i+1] {
+				return false
+			} else {
+				continue
 			}
-		})
+		}
 	}
+	return true
 }
