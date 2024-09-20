@@ -22,7 +22,7 @@ func TestFormCpuInfo(t *testing.T) {
 		require.Less(t, float32(0), check)
 	})
 
-	t.Run("test what results is diferent", func(t *testing.T) {
+	t.Run("test what results is different", func(t *testing.T) {
 		require.False(t, checkAllEqualing(results[0].Idle, results[1].Idle, results[2].Idle))
 	})
 }

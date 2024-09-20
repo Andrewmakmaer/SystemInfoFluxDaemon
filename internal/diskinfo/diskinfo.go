@@ -16,7 +16,7 @@ type DiskInfo struct {
 func CheckRequirements() error {
 	cmd := exec.Command("iostat")
 	_, err := cmd.Output()
-	if err.Error() == "exec: \"iostat\": executable file not found in $PATH" {
+	if err != nil && err.Error() == "exec: \"iostat\": executable file not found in $PATH" {
 		slog.Error("not install iostat on host mashine")
 		return err
 	} else if err != nil {

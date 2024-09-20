@@ -6,7 +6,7 @@ import (
 
 type Config struct {
 	Port        string   `yaml:"port"`
-	LoggingMode string   `yaml:"log_level"`
+	LoggingMode string   `yaml:"logLevel"`
 	Modes       []string `yaml:"modes"`
 }
 
@@ -26,7 +26,7 @@ func NewConfig(path string) Config {
 		panic(err)
 	}
 
-	var config = Config{
+	config := Config{
 		Port:        viper.GetString("Port"),
 		LoggingMode: viper.GetString("Log_Level"),
 		Modes:       viper.GetStringSlice("Modes"),

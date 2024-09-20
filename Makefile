@@ -38,6 +38,12 @@ docker:
 		-t $(CLIENT_IMG) \
 		-f DockerBuild/ClientDockerfile .
 
+docker-daemon-run: docker
+	docker run "DAEMON_MODES=cpu la" -e "DAEMON_LOG_LEVEL=INFO" -e "PORT=8765" -p 8765:8765 $(DAEMON_IMG)
+
+integrations: docker
+	INTEGRATION_DAEMON_URL=":8765" go run integration_test/main.go
+
 lint: install-lint-deps
 	golangci-lint run --fix ./...
 	
