@@ -1,6 +1,6 @@
 FROM golang:1.22 as build
 
-ENV BIN_FILE /opt/systemfluxdaemon/daemon-app
+ENV BIN_FILE /opt/systemfluxdaemon/example-client-app
 ENV CODE_DIR /go/src/
 
 WORKDIR ${CODE_DIR}
@@ -17,16 +17,16 @@ COPY . ${CODE_DIR}
 ARG LDFLAGS
 RUN CGO_ENABLED=0 go build \
         -ldflags "$LDFLAGS" \
-        -o ${BIN_FILE} cmd/*
+        -o ${BIN_FILE} examples/*
 
 # На выходе тонкий образ
 FROM alpine:3.9
 
 LABEL ORGANIZATION="OTUS Online Education"
-LABEL SERVICE="system info flux daemon"
+LABEL SERVICE="system info flux daemon - example client"
 LABEL MAINTAINERS="andrewmakmawer@gmail.com"
 
-ENV BIN_FILE "/opt/systemfluxdaemon/daemon-app"
+ENV BIN_FILE "/opt/systemfluxdaemon/example-client-app"
 COPY --from=build ${BIN_FILE} ${BIN_FILE}
 
 CMD ${BIN_FILE}

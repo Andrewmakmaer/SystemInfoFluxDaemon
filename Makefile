@@ -39,9 +39,9 @@ docker:
 		-f DockerBuild/ClientDockerfile .
 
 docker-daemon-run: docker
-	docker run "DAEMON_MODES=cpu la" -e "DAEMON_LOG_LEVEL=INFO" -e "PORT=8765" -p 8765:8765 $(DAEMON_IMG)
+	docker run -d -e "DAEMON_MODES=cpu la" -e "DAEMON_LOG_LEVEL=INFO" -e "DAEMON_PORT=8765" -p 8765:8765 $(DAEMON_IMG)
 
-integrations: docker
+integrations: docker-daemon-run
 	INTEGRATION_DAEMON_URL=":8765" go run integration_test/main.go
 
 lint: install-lint-deps

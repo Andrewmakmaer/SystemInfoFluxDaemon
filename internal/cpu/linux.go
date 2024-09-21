@@ -4,49 +4,73 @@
 package cpu
 
 import (
-	"os/exec"
+	"math"
+	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func getInfo() CPUStats {
-	cmd := exec.Command("top", "-b", "-n1")
-	out, err := cmd.Output()
+	res, err := calculateValue()
 	if err != nil {
 		panic(err)
 	}
-
-	strOut := strings.Split(string(out), "\n")[2]
-	cpuInfo := strings.Split(strings.Split(strOut, ":")[1], ",")
-	resultStats := formCPUInfo(cpuInfo)
-
-	return resultStats
+	return res
 }
 
-func formCPUInfo(unformInfo []string) CPUStats {
-	var us, sy, id, wa float32
+func readCPUStats() ([]float32, error) {
+	content, err := os.ReadFile("/proc/stat")
+	if err != nil {
+		return nil, err
+	}
 
-	for _, item := range unformInfo {
-		switch {
-		case strings.Contains(item, "us"):
-			us = paramToFloat(item)
-		case strings.Contains(item, "sy"):
-			sy = paramToFloat(item)
-		case strings.Contains(item, "id"):
-			id = paramToFloat(item)
-		case strings.Contains(item, "wa"):
-			wa = paramToFloat(item)
+	lines := strings.Split(string(content), "\n")
+	cpuLine := strings.Fields(lines[0])[1:]
+
+	var stats []float32
+	for _, value := range cpuLine {
+		v, err := strconv.ParseFloat(value, 32)
+		if err != nil {
+			return nil, err
 		}
+		stats = append(stats, float32(v))
 	}
-	return CPUStats{Sys: sy, Usr: us, Idle: id, Iowait: wa}
+
+	return stats, nil
+}
+func calculateValue() (CPUStats, error) {
+	firstStats, err := readCPUStats()
+	if err != nil {
+		return CPUStats{}, err
+	}
+
+	time.Sleep(500 * time.Millisecond)
+
+	secondStats, err := readCPUStats()
+	if err != nil {
+		return CPUStats{}, err
+	}
+
+	var firstTotal float32 = 0.0
+	var secondTotal float32 = 0.0
+	for i := range firstStats {
+		firstTotal += firstStats[i]
+		secondTotal += secondStats[i]
+	}
+
+	diff := secondTotal - firstTotal
+	var result = CPUStats{
+		Sys:    roundFloat((secondStats[2]-firstStats[2])/float32(diff)*100, 1),
+		Usr:    roundFloat((secondStats[0]-firstStats[0])/float32(diff)*100, 1),
+		Idle:   roundFloat((secondStats[3]-firstStats[3])/float32(diff)*100, 1),
+		Iowait: roundFloat((secondStats[4]-firstStats[4])/float32(diff)*100, 1),
+	}
+	return result, nil
 }
 
-func paramToFloat(param string) float32 {
-	param = strings.TrimSpace(param)
-	strVal := strings.Split(param, " ")[0]
-	floatVal, err := strconv.ParseFloat(strVal, 32)
-	if err != nil {
-		panic(err)
-	}
-	return float32(floatVal)
+func roundFloat(val float32, precision uint) float32 {
+	ratio := math.Pow(10, float64(precision))
+	res := float32(math.Round(float64(val)*ratio) / ratio)
+	return res
 }

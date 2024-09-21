@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log/slog"
+
 	"github.com/spf13/viper"
 )
 
@@ -23,7 +25,7 @@ func NewConfig(path string) Config {
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		panic(err)
+		slog.Error(err.Error())
 	}
 
 	config := Config{

@@ -21,7 +21,7 @@ func (s *Scheduler) Do(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			default:
-				s.doFunc()
+				go s.doFunc()
 				time.Sleep(s.period)
 			}
 		}

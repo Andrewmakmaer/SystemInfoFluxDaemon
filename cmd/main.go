@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log/slog"
 	"os/signal"
 	"syscall"
@@ -26,6 +27,7 @@ func init() {
 func main() {
 	flag.Parse()
 	config := NewConfig(configFile)
+	fmt.Println(config)
 
 	var (
 		cpuList      = list.NewNodeList()
