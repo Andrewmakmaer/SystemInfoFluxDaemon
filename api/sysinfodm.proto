@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package sysdaemon;
+option go_package = "./;pb";
+
+service Daemon {
+    rpc EnableStatStream(StreamRequest) returns (stream StatsResponce) {};
+}
+
+message StreamRequest{
+    string stats_type = 1;
+    int32 seconds_delay = 2;
+    int32 seconds_range = 3;
+}
+
+message CPUStat{
+    float sys = 1;
+    float usr = 2;
+    float idle = 3;
+    float iowait = 4;
+}
+
+message LAStat{
+    float la1 = 1;
+    float la5 = 2;
+    float la15 = 3;
+}
+
+message DiskInfoStat {
+    float tps = 1;
+    float kbs = 2;
+}
+
+message DiskStat {
+    map<string, DiskInfoStat> disk_stat = 1;
+}
+
+message StatsResponce{
+    oneof stat {
+        CPUStat cpu_stats = 1;
+        LAStat la_stats = 2; 
+        DiskStat disk_info = 3;
+    }
+}
